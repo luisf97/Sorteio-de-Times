@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+</head>
+<style>
+    .partidas {
+        text-align: center;
+        border: 1px solid black;
+        width: 300px;
+        height: 270px;
+        padding: 5px;
+        margin: 10px;
+        background-color: rgba(53, 23, 23, 0.658);
+        color: rgb(173, 216, 20);
+    }
+
+    .flex {
+        display: flex;
+        flex-wrap: wrap;
+        background-color: rgb(194, 194, 169);
+        border: 1px solid black;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    .btn-sort {
+        padding: 10px;
+        background-color: rgba(115, 165, 82, 0.644);
+        color: black;
+        border-radius: 12px;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+</style>
+
+<body>
+    <div id="app">
+
+        <button v-if="todosTimes.length == 0" class="btn-sort" @click="tabelaCamp">Sortear Oitavas</button>
+        <button v-if="todosTimes.length != 0 && !showScore" class="btn-sort" @click="changeShowScore">Iniciar partidas</button>
+
+        <h1 v-if="todosTimes.length != 0">Oitavas de Final</h1>
+
+        <div>
+            <ul v-if="todosTimes.length == 0">
+                <li v-for="time in times">{{ time.name }}</li>
+            </ul>
+        </div>
+
+        <div class="flex" v-if="todosTimes.length != 0">
+            <div class="partidas" v-for="(partida, index) in partidas">
+                <h1>Partida {{ ++index }} </h1>
+                <h2>{{ partida.times[0].name }} <span v-if="showScore"> {{partida.placar}} </span> <span v-else>X</span> {{ partida.times[1].name }} </h2>
+                <h3>Local: {{ partida.estadio.name }} </h3>
+                <h3 v-if="showScore">Público: {{ partida.capacidade }} </h3>
+                <h3>Data: {{ partida.data }} </h3>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            times: [
+                { name:'Flamengo', federative_state: 'RJ' , estadio_id: 2}, { name: 'Fluminense', federative_state: 'RJ', estadio_id: 2},
+                { name: 'Vasco', federative_state: 'RJ', estadio_id: 2}, { name: 'Botafogo', federative_state: 'RJ', estadio_id: 2},
+                { name: 'São Paulo', federative_state: 'SP', estadio_id: 7 }, { name: 'Corinthians', federative_state: 'SP', estadio_id: 4}, 
+                { name: 'Palmeiras', federative_state: 'SP', estadio_id: 8}, { name: 'Santos', federative_state: 'SP', estadio_id: 6 },
+                { name: 'Fortaleza', federative_state: 'CE', estadio_id: 1 }, { name: 'Ceará', federative_state: 'CE',estadio_id: 1 },
+                { name: 'Ferroviário', federative_state: 'CE', estadio_id: 1 }, { name: 'Bahia', federative_state: 'BA', estadio_id: 10 },
+                { name: 'Internacional', federative_state: 'RS', estadio_id: 9 }, { name: 'Grêmio', federative_state: 'RS',estadio_id: 5  },
+                { name: 'Cruzeiro', federative_state: 'MG', estadio_id: 3  }, { name: 'Atlético/MG', federative_state: 'MG', estadio_id: 3  }
+                
+            ],
+            estadios: [
+                { id: 1, name: 'Arena Castelão', capacidade: 63900},
+                { id: 2, name: 'Maracanã', capacidade: 77500},
+                { id: 3, name: 'Mineirão', capacidade: 60000},
+                { id: 4, name: 'Arena Corinthians', capacidade: 48000},
+                { id: 5, name: 'Arena do Grêmio', capacidade: 45000},
+                { id: 6, name: 'Vila Belmiro', capacidade: 20000},
+                { id: 7, name: 'Morumbi', capacidade: 66000},
+                { id: 8, name: 'Allianz Parque', capacidade: 47000},
+                { id: 9, name: 'Beira Rio', capacidade: 45000},
+                { id: 10, name: 'Arena Fonte Nova', capacidade: 47000},
+            ],
+            todosTimes: [],
+            partidas: [],
+            showScore: false,
+        },
+        methods: {
+            sortearTimes(array) {
+                array.sort(() => Math.random() - 0.5)
+            },
+            tabelaCamp() {
+
+                this.times.forEach(time => {
+                    this.todosTimes.push(time)
+                })
+
+                this.sortearTimes(this.todosTimes);
+
+                const chunkSize = 2;
+
+                for (let i = 0; i < this.todosTimes.length; i += chunkSize) {
+                    const times = this.todosTimes.slice(i, i + chunkSize);
+                    let estadio = '';
+
+                    times.forEach((time, index) => {
+                       if(index === 0){
+                        estadio = this.findEstadioById(time.estadio_id)
+                       }
+                    })
+                    
+
+                    this.partidas.push({
+                        times,
+                        placar: `${this.gerarNumeroAleatorio(3)} X ${this.gerarNumeroAleatorio(3)}`,
+                        estadio,
+                        capacidade:this.gerarNumeroAleatorio(estadio.capacidade),
+                        data: '25/03/2022'
+                    } )
+                }
+
+            },
+
+            gerarNumeroAleatorio(tamanho) {
+                return Math.floor(Math.random() * tamanho )
+            },
+
+            findEstadioById(id) {
+               const estadio = this.estadios.find(estadio => estadio.id === id)
+               return estadio
+            },
+            changeShowScore(){
+                this.showScore = true;
+            }
+        }
+    })
+</script>
+</html>
